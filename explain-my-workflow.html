@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explain My Workflow — n8n Setup Guide Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --border: #e2e0d8;
+    --text: #1a1917;
+    --muted: #8a8880;
+    --accent: #e85d3a;
+    --accent-light: #fdf0ec;
+    --n8n: #ea4b26;
+    --mono: 'DM Mono', monospace;
+    --serif: 'DM Serif Display', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    padding: 2rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .logo-text {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    color: var(--text);
+  }
+  .logo-badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    background: var(--accent);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+  .header-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  /* HERO */
+  .hero {
+    max-width: 760px;
+    margin: 5rem auto 3rem;
+    padding: 0 2rem;
+    text-align: center;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.4rem, 5vw, 3.5rem);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+  }
+  .hero h1 em {
+    color: var(--accent);
+    font-style: italic;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 520px;
+    margin: 0 auto 2.5rem;
+  }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  .drop-area {
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .drop-area:hover, .drop-area.dragover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .drop-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .drop-area h3 {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+  }
+  .drop-area p {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .drop-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .btn-analyze {
+    display: block;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.85rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .btn-analyze:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+  .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* FILE PREVIEW */
+  .file-preview {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--accent-light);
+    border: 1px solid #f0c4b8;
+    border-radius: 6px;
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+  }
+  .file-preview.show { display: flex; }
+  .file-preview .fname { font-family: var(--mono); font-weight: 500; flex: 1; }
+  .file-preview .clear { cursor: pointer; color: var(--muted); font-size: 1rem; }
+
+  /* LOADING */
+  .loading-state {
+    display: none;
+    max-width: 680px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+    text-align: center;
+  }
+  .loading-state.show { display: block; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-steps {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  .loading-steps span { display: block; opacity: 0; animation: fadeIn 0.4s forwards; }
+  .loading-steps span:nth-child(1) { animation-delay: 0.2s; }
+  .loading-steps span:nth-child(2) { animation-delay: 1.0s; }
+  .loading-steps span:nth-child(3) { animation-delay: 2.0s; }
+  .loading-steps span:nth-child(4) { animation-delay: 3.2s; }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  /* RESULTS */
+  .results {
+    display: none;
+    max-width: 800px;
+    margin: 3rem auto 5rem;
+    padding: 0 2rem;
+  }
+  .results.show { display: block; }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .workflow-meta h2 {
+    font-family: var(--serif);
+    font-size: 1.8rem;
+    margin-bottom: 0.2rem;
+  }
+  .workflow-meta p {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-family: var(--mono);
+  }
+  .btn-reset {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: var(--sans);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+  .guide-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2.5rem;
+    line-height: 1.75;
+  }
+  .guide-content h2 {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    margin: 2rem 0 0.75rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .guide-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+  .guide-content h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--accent);
+  }
+  .guide-content p { margin-bottom: 0.8rem; font-size: 0.95rem; }
+  .guide-content ul, .guide-content ol {
+    padding-left: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .guide-content li { margin-bottom: 0.4rem; font-size: 0.95rem; }
+  .guide-content code {
+    font-family: var(--mono);
+    font-size: 0.82em;
+    background: var(--bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  .guide-content pre {
+    background: #1a1917;
+    color: #f0ece4;
+    padding: 1.2rem 1.4rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    margin: 1rem 0;
+    line-height: 1.6;
+  }
+  .guide-content pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  /* STEP BADGE */
+  .step-block {
+    display: flex;
+    gap: 1rem;
+    margin: 1.2rem 0;
+    padding: 1rem 1.2rem;
+    background: var(--bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 500;
+    min-width: 24px;
+    padding-top: 2px;
+  }
+  .step-body { flex: 1; font-size: 0.92rem; }
+
+  /* CREDENTIAL CARD */
+  .cred-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 0.75rem 0;
+    background: var(--surface);
+  }
+  .cred-card .cred-name {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .cred-card p { font-size: 0.88rem; color: var(--muted); margin: 0; }
+
+  /* ERROR */
+  .error-box {
+    display: none;
+    background: #fff5f3;
+    border: 1px solid #fac4b8;
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+    color: #c0392b;
+  }
+  .error-box.show { display: block; }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 1rem;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-text">Explain My Workflow</span>
+    <span class="logo-badge">n8n</span>
+  </div>
+  <span class="header-sub">Upload → Understand → Build</span>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Turn your n8n template<br>into a <em>working agent</em></h1>
+    <p>Upload any n8n workflow JSON file. We'll read it, understand every node, and give you a clear step-by-step guide to set it up — credentials, API keys, triggers, and all.</p>
+  </section>
+
+  <div class="upload-zone" id="uploadZone">
+    <div class="drop-area" id="dropArea">
+      <span class="drop-icon">📂</span>
+      <h3>Drop your n8n workflow JSON here</h3>
+      <p>or click to browse</p>
+      <input type="file" id="fileInput" accept=".json">
+    </div>
+    <div class="file-preview" id="filePreview">
+      <span>📄</span>
+      <span class="fname" id="fileName"></span>
+      <span class="clear" id="clearFile" title="Remove">✕</span>
+    </div>
+    <div class="progress-bar-wrap" id="progressWrap" style="display:none">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+    <button class="btn-analyze" id="analyzeBtn" disabled>Analyze Workflow →</button>
+  </div>
+
+  <div class="loading-state" id="loadingState">
+    <div class="spinner"></div>
+    <div class="loading-steps">
+      <span>📖 Reading workflow structure...</span>
+      <span>🔍 Identifying nodes and integrations...</span>
+      <span>🔑 Detecting required credentials & API keys...</span>
+      <span>✍️ Generating your setup guide...</span>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="results-header">
+      <div class="workflow-meta">
+        <h2 id="workflowTitle">Workflow Setup Guide</h2>
+        <p id="workflowMeta"></p>
+      </div>
+      <button class="btn-reset" id="resetBtn">← Analyze another</button>
+    </div>
+    <div class="guide-content" id="guideContent"></div>
+  </div>
+</main>
+
+<footer>Explain My Workflow — powered by Claude AI · Reads n8n workflow JSON exports</footer>
+
+<script>
+let uploadedJSON = null;
+let uploadedFileName = '';
+
+const dropArea = document.getElementById('dropArea');
+const fileInput = document.getElementById('fileInput');
+const filePreview = document.getElementById('filePreview');
+const fileName = document.getElementById('fileName');
+const clearFile = document.getElementById('clearFile');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const errorBox = document.getElementById('errorBox');
+const loadingState = document.getElementById('loadingState');
+const results = document.getElementById('results');
+const guideContent = document.getElementById('guideContent');
+const workflowTitle = document.getElementById('workflowTitle');
+const workflowMeta = document.getElementById('workflowMeta');
+const resetBtn = document.getElementById('resetBtn');
+const progressBar = document.getElementById('progressBar');
+const progressWrap = document.getElementById('progressWrap');
+
+// Drag & drop
+dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('dragover'); });
+dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+dropArea.addEventListener('drop', e => {
+  e.preventDefault();
+  dropArea.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+  if (!file.name.endsWith('.json')) {
+    showError('Please upload a valid .json file exported from n8n.');
+    return;
+  }
+  hideError();
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      uploadedJSON = parsed;
+      uploadedFileName = file.name;
+      fileName.textContent = file.name;
+      filePreview.classList.add('show');
+      analyzeBtn.disabled = false;
+    } catch {
+      showError('Could not parse JSON. Make sure you export the workflow from n8n correctly.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+clearFile.addEventListener('click', () => {
+  uploadedJSON = null;
+  uploadedFileName = '';
+  filePreview.classList.remove('show');
+  fileInput.value = '';
+  analyzeBtn.disabled = true;
+  hideError();
+});
+
+analyzeBtn.addEventListener('click', analyzeWorkflow);
+resetBtn.addEventListener('click', () => {
+  results.classList.remove('show');
+  document.getElementById('uploadZone').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.add('show');
+}
+function hideError() {
+  errorBox.classList.remove('show');
+}
+
+async function analyzeWorkflow() {
+  if (!uploadedJSON) return;
+
+  document.getElementById('uploadZone').style.display = 'none';
+  loadingState.classList.add('show');
+  results.classList.remove('show');
+
+  try {
+    const guide = await generateGuide(uploadedJSON, uploadedFileName);
+    loadingState.classList.remove('show');
+    
+    const wfName = uploadedJSON.name || uploadedFileName.replace('.json','') || 'n8n Workflow';
+    const nodeCount = (uploadedJSON.nodes || []).length;
+    workflowTitle.textContent = `Setup Guide: ${wfName}`;
+    workflowMeta.textContent = `${nodeCount} nodes detected · Generated from ${uploadedFileName}`;
+    
+    guideContent.innerHTML = renderMarkdown(guide);
+    results.classList.add('show');
+    results.scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    loadingState.classList.remove('show');
+    document.getElementById('uploadZone').style.display = '';
+    showError('Something went wrong: ' + (err.message || 'Unknown error'));
+  }
+}
+
+async function generateGuide(json, filename) {
+  const summary = buildWorkflowSummary(json);
+
+  const systemPrompt = `You are an expert n8n workflow setup assistant. Your job is to read a parsed n8n workflow JSON summary and produce a comprehensive, beginner-friendly step-by-step setup guide so the user can get their n8n agent running from scratch.
+
+Format your response in clean Markdown with these sections:
+1. **Workflow Overview** – What does this workflow do? Summarize in 2-3 sentences.
+2. **Prerequisites** – Software, accounts, and access needed before starting.
+3. **Step-by-Step Setup** – Numbered steps covering:
+   - How to import the workflow into n8n
+   - Each credential/API key needed (what service, where to get it, how to add it in n8n)
+   - Any prompt or expression configuration needed
+   - Trigger configuration (schedule, webhook, manual, etc.)
+   - Node-specific settings to configure
+4. **Testing Your Workflow** – How to do a first test run
+5. **Troubleshooting Tips** – Common issues and fixes
+
+Be specific to the actual nodes and services detected. Use code blocks for field values, credential names, or example prompts. Keep it practical and actionable.`;
+
+  const userPrompt = `Here is the parsed n8n workflow summary for file "${filename}":
+
+${JSON.stringify(summary, null, 2)}
+
+Please generate a complete setup guide following the format in your instructions.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.content.map(b => b.text || '').join('');
+}
+
+function buildWorkflowSummary(json) {
+  const nodes = json.nodes || [];
+  const connections = json.connections || {};
+
+  const nodeSummaries = nodes.map(n => ({
+    name: n.name,
+    type: n.type,
+    typeVersion: n.typeVersion,
+    credentials: n.credentials ? Object.keys(n.credentials) : [],
+    parameters: sanitizeParams(n.parameters),
+    position: n.position
+  }));
+
+  const credentialsNeeded = [];
+  const credsSeen = new Set();
+  nodes.forEach(n => {
+    if (n.credentials) {
+      Object.entries(n.credentials).forEach(([credType, credVal]) => {
+        const key = credType + ':' + (credVal?.name || '');
+        if (!credsSeen.has(key)) {
+          credsSeen.add(key);
+          credentialsNeeded.push({ type: credType, name: credVal?.name || '', node: n.name });
+        }
+      });
+    }
+  });
+
+  const triggers = nodes.filter(n =>
+    n.type?.includes('trigger') || n.type?.includes('Trigger') ||
+    n.type?.includes('webhook') || n.type?.includes('schedule') ||
+    n.type === 'n8n-nodes-base.manualTrigger'
+  );
+
+  return {
+    workflowName: json.name || 'Unnamed Workflow',
+    nodeCount: nodes.length,
+    nodes: nodeSummaries,
+    credentialsNeeded,
+    triggers: triggers.map(t => ({ name: t.name, type: t.type, parameters: sanitizeParams(t.parameters) })),
+    connectionCount: Object.keys(connections).length
+  };
+}
+
+function sanitizeParams(params) {
+  if (!params) return {};
+  // Remove very long values, keep structure
+  const out = {};
+  for (const [k, v] of Object.entries(params)) {
+    if (typeof v === 'string' && v.length > 300) {
+      out[k] = v.substring(0, 300) + '...[truncated]';
+    } else if (typeof v === 'object' && v !== null) {
+      out[k] = sanitizeParams(v);
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
+// Simple markdown renderer
+function renderMarkdown(md) {
+  return md
+    .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+      `<pre><code>${escapeHtml(code.trim())}</code></pre>`)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ol>${m}</ol>`)
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hoplupre])/gm, '')
+    .replace(/<p><\/p>/g, '')
+    .replace(/<p>(<[hol])/g, '$1')
+    .replace(/(<\/[hol][^>]*>)<\/p>/g, '$1')
+    .replace(/(<p>[^<])/g, '<p>$1')
+    // wrap remaining text
+    .split('\n').map(line => {
+      if (line.match(/^<(h[123]|ul|ol|li|pre|p)/)) return line;
+      if (line.trim() === '') return '';
+      return `<p>${line}</p>`;
+    }).join('\n');
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
